@@ -1,0 +1,884 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>part1_oop &mdash; School Management System 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            School Management System
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">School Management System</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">School Management System</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">part1_oop</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for part1_oop</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Object-oriented model of the School Management System.</span>
+
+<span class="sd">Defines the validation helpers, the :class:`Person` hierarchy</span>
+<span class="sd">(:class:`Student`, :class:`Instructor`), :class:`Course` and the</span>
+<span class="sd">:class:`School` container that serializes everything to JSON.</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+
+
+<span class="n">EMAIL_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ValidationError">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.ValidationError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ValidationError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Raised when user supplied data fails validation.</span>
+
+<span class="sd">    Subclass of :class:`ValueError` so it can be caught generically.</span>
+<span class="sd">    """</span></div>
+
+
+
+<div class="viewcode-block" id="validate_non_empty">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.validate_non_empty">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_non_empty</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Ensure a value is not empty or whitespace only.</span>
+
+<span class="sd">    :param value: The value to check</span>
+<span class="sd">    :type value: object</span>
+<span class="sd">    :param field: Human readable field name used in the error message</span>
+<span class="sd">    :type field: str</span>
+<span class="sd">    :raises ValidationError: If the value is ``None`` or blank</span>
+<span class="sd">    :return: The value converted to a stripped string</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2"> cannot be empty."</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="validate_age">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.validate_age">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_age</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Validate and convert an age.</span>
+
+<span class="sd">    :param value: The age to validate, as an int or numeric string</span>
+<span class="sd">    :type value: int or str</span>
+<span class="sd">    :raises ValidationError: If the age is not a whole number or is outside 0..130</span>
+<span class="sd">    :return: The age as an integer</span>
+<span class="sd">    :rtype: int</span>
+<span class="sd">    """</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">age</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">"Age must be a whole number."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">age</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">"Age cannot be negative."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">age</span> <span class="o">&gt;</span> <span class="mi">130</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">"Age must be 130 or less."</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">age</span></div>
+
+
+
+<div class="viewcode-block" id="validate_email">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.validate_email">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_email</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Validate an email address against a simple pattern.</span>
+
+<span class="sd">    :param value: The email address to validate</span>
+<span class="sd">    :type value: str</span>
+<span class="sd">    :raises ValidationError: If the email is empty or malformed</span>
+<span class="sd">    :return: The stripped email address</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    """</span>
+    <span class="n">email</span> <span class="o">=</span> <span class="n">validate_non_empty</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s2">"Email"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">EMAIL_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">email</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">email</span><span class="si">}</span><span class="s2">' is not a valid email address."</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">email</span></div>
+
+
+
+<div class="viewcode-block" id="Serializable">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Serializable">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Serializable</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Abstract base class for objects that convert to and from dictionaries."""</span>
+
+<div class="viewcode-block" id="Serializable.to_dict">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Serializable.to_dict">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Convert the object to a JSON friendly dictionary.</span>
+
+<span class="sd">        :return: Dictionary representation of the object</span>
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        """</span></div>
+
+
+<div class="viewcode-block" id="Serializable.from_dict">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Serializable.from_dict">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Build an object from a dictionary.</span>
+
+<span class="sd">        :param data: Dictionary produced by :meth:`to_dict`</span>
+<span class="sd">        :type data: dict</span>
+<span class="sd">        :return: A new instance of the class</span>
+<span class="sd">        """</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Person">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Person">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Person</span><span class="p">(</span><span class="n">Serializable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Base class for every person in the school.</span>
+
+<span class="sd">    :param name: Full name of the person</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :param age: Age of the person, between 0 and 130</span>
+<span class="sd">    :type age: int</span>
+<span class="sd">    :param _email: Email address of the person</span>
+<span class="sd">    :type _email: str</span>
+<span class="sd">    :raises ValidationError: If any argument is invalid</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">_email</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Constructor method"""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">validate_non_empty</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">"Name"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">=</span> <span class="n">validate_age</span><span class="p">(</span><span class="n">age</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_email</span> <span class="o">=</span> <span class="n">validate_email</span><span class="p">(</span><span class="n">_email</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">email</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The validated email address of the person.</span>
+
+<span class="sd">        :return: The email address</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_email</span>
+
+    <span class="nd">@email</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">email</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_email</span> <span class="o">=</span> <span class="n">validate_email</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Person.introduce">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Person.introduce">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">introduce</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return a short self introduction.</span>
+
+<span class="sd">        :return: Introduction sentence</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"Hello, my name is </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">. I am </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">age</span><span class="si">}</span><span class="s2"> years old."</span></div>
+
+
+<div class="viewcode-block" id="Person.to_dict">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Person.to_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Convert the person to a dictionary.</span>
+
+<span class="sd">        :return: Dictionary with ``name``, ``age`` and ``email`` keys</span>
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">"age"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">age</span><span class="p">,</span> <span class="s2">"email"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_email</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Person.from_dict">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Person.from_dict">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Create a person from a dictionary.</span>
+
+<span class="sd">        :param data: Dictionary with ``name``, ``age`` and ``email`` keys</span>
+<span class="sd">        :type data: dict</span>
+<span class="sd">        :return: A new person</span>
+<span class="sd">        :rtype: Person</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">"name"</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">"age"</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">"email"</span><span class="p">])</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return the developer representation of the person.</span>
+
+<span class="sd">        :rtype: str</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">age</span><span class="si">!r}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_email</span><span class="si">!r}</span><span class="s2">)"</span></div>
+
+
+
+<div class="viewcode-block" id="Student">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Student">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Student</span><span class="p">(</span><span class="n">Person</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A student that can register in courses.</span>
+
+<span class="sd">    :param name: Full name of the student</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :param age: Age of the student</span>
+<span class="sd">    :type age: int</span>
+<span class="sd">    :param _email: Email address of the student</span>
+<span class="sd">    :type _email: str</span>
+<span class="sd">    :param student_id: Unique student identifier</span>
+<span class="sd">    :type student_id: str</span>
+<span class="sd">    :param registered_courses: Courses the student is registered in, defaults to None</span>
+<span class="sd">    :type registered_courses: list, optional</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">_email</span><span class="p">,</span> <span class="n">student_id</span><span class="p">,</span> <span class="n">registered_courses</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Constructor method"""</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">_email</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">student_id</span> <span class="o">=</span> <span class="n">validate_non_empty</span><span class="p">(</span><span class="n">student_id</span><span class="p">,</span> <span class="s2">"Student ID"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">registered_courses</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">registered_courses</span><span class="p">)</span> <span class="k">if</span> <span class="n">registered_courses</span> <span class="k">else</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="Student.register_course">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Student.register_course">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_course</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">course</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Register the student in a course and enroll them in it.</span>
+
+<span class="sd">        :param course: The course to register in</span>
+<span class="sd">        :type course: :class:`Course`</span>
+<span class="sd">        :raises ValidationError: If ``course`` is not a Course or the student is already registered</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">course</span><span class="p">,</span> <span class="n">Course</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">"register_course() expects a Course object."</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">course_id</span> <span class="o">==</span> <span class="n">course</span><span class="o">.</span><span class="n">course_id</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">registered_courses</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> is already registered in </span><span class="si">{</span><span class="n">course</span><span class="o">.</span><span class="n">course_name</span><span class="si">}</span><span class="s2">."</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">registered_courses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">course</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">student_id</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">student_id</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">course</span><span class="o">.</span><span class="n">enrolled_students</span><span class="p">):</span>
+            <span class="n">course</span><span class="o">.</span><span class="n">enrolled_students</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Student.drop_course">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Student.drop_course">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">drop_course</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">course</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Remove the student from a course.</span>
+
+<span class="sd">        :param course: The course to drop</span>
+<span class="sd">        :type course: :class:`Course`</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">registered_courses</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">registered_courses</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">course_id</span> <span class="o">!=</span> <span class="n">course</span><span class="o">.</span><span class="n">course_id</span>
+        <span class="p">]</span>
+        <span class="n">course</span><span class="o">.</span><span class="n">enrolled_students</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">course</span><span class="o">.</span><span class="n">enrolled_students</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">student_id</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">student_id</span>
+        <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Student.introduce">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Student.introduce">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">introduce</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return a self introduction including the student ID.</span>
+
+<span class="sd">        :rtype: str</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">introduce</span><span class="p">()</span><span class="si">}</span><span class="s2"> I am a student, id </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">student_id</span><span class="si">}</span><span class="s2">."</span></div>
+
+
+<div class="viewcode-block" id="Student.to_dict">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Student.to_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Convert the student to a dictionary including registered course IDs.</span>
+
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        """</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">"student_id"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">student_id</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">"registered_courses"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">course_id</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">registered_courses</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="Student.from_dict">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Student.from_dict">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Create a student from a dictionary, without its courses.</span>
+
+<span class="sd">        :param data: Dictionary produced by :meth:`to_dict`</span>
+<span class="sd">        :type data: dict</span>
+<span class="sd">        :rtype: Student</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">"name"</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">"age"</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">"email"</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">"student_id"</span><span class="p">])</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Instructor">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Instructor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Instructor</span><span class="p">(</span><span class="n">Person</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""An instructor that can be assigned to courses.</span>
+
+<span class="sd">    :param name: Full name of the instructor</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :param age: Age of the instructor</span>
+<span class="sd">    :type age: int</span>
+<span class="sd">    :param _email: Email address of the instructor</span>
+<span class="sd">    :type _email: str</span>
+<span class="sd">    :param instructor_id: Unique instructor identifier</span>
+<span class="sd">    :type instructor_id: str</span>
+<span class="sd">    :param assigned_courses: Courses taught by the instructor, defaults to None</span>
+<span class="sd">    :type assigned_courses: list, optional</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">_email</span><span class="p">,</span> <span class="n">instructor_id</span><span class="p">,</span> <span class="n">assigned_courses</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Constructor method"""</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">_email</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instructor_id</span> <span class="o">=</span> <span class="n">validate_non_empty</span><span class="p">(</span><span class="n">instructor_id</span><span class="p">,</span> <span class="s2">"Instructor ID"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assigned_courses</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">assigned_courses</span><span class="p">)</span> <span class="k">if</span> <span class="n">assigned_courses</span> <span class="k">else</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="Instructor.assign_course">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Instructor.assign_course">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">assign_course</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">course</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Assign the instructor to a course, replacing any previous instructor.</span>
+
+<span class="sd">        :param course: The course to teach</span>
+<span class="sd">        :type course: :class:`Course`</span>
+<span class="sd">        :raises ValidationError: If ``course`` is not a Course or is already assigned</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">course</span><span class="p">,</span> <span class="n">Course</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">"assign_course() expects a Course object."</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">course_id</span> <span class="o">==</span> <span class="n">course</span><span class="o">.</span><span class="n">course_id</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">assigned_courses</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> is already assigned to </span><span class="si">{</span><span class="n">course</span><span class="o">.</span><span class="n">course_name</span><span class="si">}</span><span class="s2">."</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">course</span><span class="o">.</span><span class="n">instructor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">course</span><span class="o">.</span><span class="n">instructor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">course</span><span class="o">.</span><span class="n">instructor</span><span class="o">.</span><span class="n">unassign_course</span><span class="p">(</span><span class="n">course</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assigned_courses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">course</span><span class="p">)</span>
+        <span class="n">course</span><span class="o">.</span><span class="n">instructor</span> <span class="o">=</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Instructor.unassign_course">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Instructor.unassign_course">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">unassign_course</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">course</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Remove the instructor from a course.</span>
+
+<span class="sd">        :param course: The course to unassign</span>
+<span class="sd">        :type course: :class:`Course`</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assigned_courses</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">assigned_courses</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">course_id</span> <span class="o">!=</span> <span class="n">course</span><span class="o">.</span><span class="n">course_id</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="n">course</span><span class="o">.</span><span class="n">instructor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">course</span><span class="o">.</span><span class="n">instructor</span><span class="o">.</span><span class="n">instructor_id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructor_id</span><span class="p">:</span>
+            <span class="n">course</span><span class="o">.</span><span class="n">instructor</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Instructor.introduce">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Instructor.introduce">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">introduce</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return a self introduction including the instructor ID.</span>
+
+<span class="sd">        :rtype: str</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">introduce</span><span class="p">()</span><span class="si">}</span><span class="s2"> I am an instructor, id </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">instructor_id</span><span class="si">}</span><span class="s2">."</span></div>
+
+
+<div class="viewcode-block" id="Instructor.to_dict">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Instructor.to_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Convert the instructor to a dictionary including assigned course IDs.</span>
+
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        """</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">"instructor_id"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructor_id</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">"assigned_courses"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">course_id</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">assigned_courses</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="Instructor.from_dict">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Instructor.from_dict">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Create an instructor from a dictionary, without its courses.</span>
+
+<span class="sd">        :param data: Dictionary produced by :meth:`to_dict`</span>
+<span class="sd">        :type data: dict</span>
+<span class="sd">        :rtype: Instructor</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">"name"</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">"age"</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">"email"</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">"instructor_id"</span><span class="p">])</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Course">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Course">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Course</span><span class="p">(</span><span class="n">Serializable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A course with an optional instructor and enrolled students.</span>
+
+<span class="sd">    :param course_id: Unique course identifier</span>
+<span class="sd">    :type course_id: str</span>
+<span class="sd">    :param course_name: Name of the course</span>
+<span class="sd">    :type course_name: str</span>
+<span class="sd">    :param instructor: Instructor teaching the course, defaults to None</span>
+<span class="sd">    :type instructor: :class:`Instructor`, optional</span>
+<span class="sd">    :param enrolled_students: Students enrolled in the course, defaults to None</span>
+<span class="sd">    :type enrolled_students: list, optional</span>
+<span class="sd">    :raises ValidationError: If an argument is invalid</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">course_id</span><span class="p">,</span> <span class="n">course_name</span><span class="p">,</span> <span class="n">instructor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">enrolled_students</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Constructor method"""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">course_id</span> <span class="o">=</span> <span class="n">validate_non_empty</span><span class="p">(</span><span class="n">course_id</span><span class="p">,</span> <span class="s2">"Course ID"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">course_name</span> <span class="o">=</span> <span class="n">validate_non_empty</span><span class="p">(</span><span class="n">course_name</span><span class="p">,</span> <span class="s2">"Course name"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">instructor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">instructor</span><span class="p">,</span> <span class="n">Instructor</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">"instructor must be an Instructor object or None."</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instructor</span> <span class="o">=</span> <span class="n">instructor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enrolled_students</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">enrolled_students</span><span class="p">)</span> <span class="k">if</span> <span class="n">enrolled_students</span> <span class="k">else</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="Course.add_student">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Course.add_student">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_student</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">student</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Enroll a student in this course.</span>
+
+<span class="sd">        :param student: The student to enroll</span>
+<span class="sd">        :type student: :class:`Student`</span>
+<span class="sd">        :raises ValidationError: If ``student`` is not a Student</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">student</span><span class="p">,</span> <span class="n">Student</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">"add_student() expects a Student object."</span><span class="p">)</span>
+        <span class="n">student</span><span class="o">.</span><span class="n">register_course</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Course.remove_student">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Course.remove_student">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_student</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">student</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Remove a student from this course.</span>
+
+<span class="sd">        :param student: The student to remove</span>
+<span class="sd">        :type student: :class:`Student`</span>
+<span class="sd">        """</span>
+        <span class="n">student</span><span class="o">.</span><span class="n">drop_course</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Course.to_dict">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Course.to_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Convert the course to a dictionary.</span>
+
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">"course_id"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">course_id</span><span class="p">,</span>
+            <span class="s2">"course_name"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">course_name</span><span class="p">,</span>
+            <span class="s2">"instructor_id"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructor</span><span class="o">.</span><span class="n">instructor_id</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructor</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">"enrolled_students"</span><span class="p">:</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">student_id</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">enrolled_students</span><span class="p">],</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Course.from_dict">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.Course.from_dict">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Create a course from a dictionary, without links.</span>
+
+<span class="sd">        :param data: Dictionary produced by :meth:`to_dict`</span>
+<span class="sd">        :type data: dict</span>
+<span class="sd">        :rtype: Course</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">"course_id"</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">"course_name"</span><span class="p">])</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return the developer representation of the course.</span>
+
+<span class="sd">        :rtype: str</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"Course(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">course_id</span><span class="si">!r}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">course_name</span><span class="si">!r}</span><span class="s2">)"</span></div>
+
+
+
+<div class="viewcode-block" id="School">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.School">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">School</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""In-memory container for students, instructors and courses keyed by ID."""</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Constructor method"""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">students</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instructors</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">courses</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="School.add_student">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.School.add_student">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_student</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">student</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add a student to the school.</span>
+
+<span class="sd">        :param student: The student to add</span>
+<span class="sd">        :type student: :class:`Student`</span>
+<span class="sd">        :raises ValidationError: If the student ID already exists</span>
+<span class="sd">        :return: The added student</span>
+<span class="sd">        :rtype: Student</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">student</span><span class="o">.</span><span class="n">student_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">students</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Student ID '</span><span class="si">{</span><span class="n">student</span><span class="o">.</span><span class="n">student_id</span><span class="si">}</span><span class="s2">' already exists."</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">students</span><span class="p">[</span><span class="n">student</span><span class="o">.</span><span class="n">student_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">student</span>
+        <span class="k">return</span> <span class="n">student</span></div>
+
+
+<div class="viewcode-block" id="School.add_instructor">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.School.add_instructor">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_instructor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instructor</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add an instructor to the school.</span>
+
+<span class="sd">        :param instructor: The instructor to add</span>
+<span class="sd">        :type instructor: :class:`Instructor`</span>
+<span class="sd">        :raises ValidationError: If the instructor ID already exists</span>
+<span class="sd">        :return: The added instructor</span>
+<span class="sd">        :rtype: Instructor</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">instructor</span><span class="o">.</span><span class="n">instructor_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructors</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Instructor ID '</span><span class="si">{</span><span class="n">instructor</span><span class="o">.</span><span class="n">instructor_id</span><span class="si">}</span><span class="s2">' already exists."</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instructors</span><span class="p">[</span><span class="n">instructor</span><span class="o">.</span><span class="n">instructor_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">instructor</span>
+        <span class="k">return</span> <span class="n">instructor</span></div>
+
+
+<div class="viewcode-block" id="School.add_course">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.School.add_course">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_course</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">course</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add a course to the school.</span>
+
+<span class="sd">        :param course: The course to add</span>
+<span class="sd">        :type course: :class:`Course`</span>
+<span class="sd">        :raises ValidationError: If the course ID already exists</span>
+<span class="sd">        :return: The added course</span>
+<span class="sd">        :rtype: Course</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">course</span><span class="o">.</span><span class="n">course_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">courses</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Course ID '</span><span class="si">{</span><span class="n">course</span><span class="o">.</span><span class="n">course_id</span><span class="si">}</span><span class="s2">' already exists."</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">courses</span><span class="p">[</span><span class="n">course</span><span class="o">.</span><span class="n">course_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">course</span>
+        <span class="k">return</span> <span class="n">course</span></div>
+
+
+<div class="viewcode-block" id="School.delete_student">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.School.delete_student">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_student</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">student_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Delete a student and drop all their courses.</span>
+
+<span class="sd">        :param student_id: ID of the student to delete</span>
+<span class="sd">        :type student_id: str</span>
+<span class="sd">        :raises ValidationError: If no such student exists</span>
+<span class="sd">        :return: The deleted student</span>
+<span class="sd">        :rtype: Student</span>
+<span class="sd">        """</span>
+        <span class="n">student</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">students</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">student_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">student</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No student with ID '</span><span class="si">{</span><span class="n">student_id</span><span class="si">}</span><span class="s2">'."</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">course</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">student</span><span class="o">.</span><span class="n">registered_courses</span><span class="p">):</span>
+            <span class="n">student</span><span class="o">.</span><span class="n">drop_course</span><span class="p">(</span><span class="n">course</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">student</span></div>
+
+
+<div class="viewcode-block" id="School.delete_instructor">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.School.delete_instructor">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_instructor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instructor_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Delete an instructor and unassign all their courses.</span>
+
+<span class="sd">        :param instructor_id: ID of the instructor to delete</span>
+<span class="sd">        :type instructor_id: str</span>
+<span class="sd">        :raises ValidationError: If no such instructor exists</span>
+<span class="sd">        :return: The deleted instructor</span>
+<span class="sd">        :rtype: Instructor</span>
+<span class="sd">        """</span>
+        <span class="n">instructor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructors</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">instructor_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">instructor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No instructor with ID '</span><span class="si">{</span><span class="n">instructor_id</span><span class="si">}</span><span class="s2">'."</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">course</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">instructor</span><span class="o">.</span><span class="n">assigned_courses</span><span class="p">):</span>
+            <span class="n">instructor</span><span class="o">.</span><span class="n">unassign_course</span><span class="p">(</span><span class="n">course</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">instructor</span></div>
+
+
+<div class="viewcode-block" id="School.delete_course">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.School.delete_course">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_course</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">course_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Delete a course and detach its students and instructor.</span>
+
+<span class="sd">        :param course_id: ID of the course to delete</span>
+<span class="sd">        :type course_id: str</span>
+<span class="sd">        :raises ValidationError: If no such course exists</span>
+<span class="sd">        :return: The deleted course</span>
+<span class="sd">        :rtype: Course</span>
+<span class="sd">        """</span>
+        <span class="n">course</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">courses</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">course_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">course</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No course with ID '</span><span class="si">{</span><span class="n">course_id</span><span class="si">}</span><span class="s2">'."</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">student</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">course</span><span class="o">.</span><span class="n">enrolled_students</span><span class="p">):</span>
+            <span class="n">student</span><span class="o">.</span><span class="n">drop_course</span><span class="p">(</span><span class="n">course</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">course</span><span class="o">.</span><span class="n">instructor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">course</span><span class="o">.</span><span class="n">instructor</span><span class="o">.</span><span class="n">unassign_course</span><span class="p">(</span><span class="n">course</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">course</span></div>
+
+
+<div class="viewcode-block" id="School.search">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.School.search">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Search records by name, ID or course.</span>
+
+<span class="sd">        :param term: Case-insensitive search text, an empty term matches everything</span>
+<span class="sd">        :type term: str</span>
+<span class="sd">        :return: Dictionary with ``students``, ``instructors`` and ``courses`` lists</span>
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        """</span>
+        <span class="n">term</span> <span class="o">=</span> <span class="p">(</span><span class="n">term</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">hit</span><span class="p">(</span><span class="o">*</span><span class="n">fields</span><span class="p">):</span>
+            <span class="k">return</span> <span class="ow">not</span> <span class="n">term</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">term</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span> <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">"students"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">students</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">hit</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">student_id</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
+                       <span class="o">*</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">course_name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">registered_courses</span><span class="p">],</span>
+                       <span class="o">*</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">course_id</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">registered_courses</span><span class="p">])</span>
+            <span class="p">],</span>
+            <span class="s2">"instructors"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructors</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">hit</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">instructor_id</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
+                       <span class="o">*</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">course_name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">assigned_courses</span><span class="p">],</span>
+                       <span class="o">*</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">course_id</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">assigned_courses</span><span class="p">])</span>
+            <span class="p">],</span>
+            <span class="s2">"courses"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">courses</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">hit</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">course_id</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">course_name</span><span class="p">,</span>
+                       <span class="n">c</span><span class="o">.</span><span class="n">instructor</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">instructor</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="p">],</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="School.to_dict">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.School.to_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Convert the whole school to a dictionary.</span>
+
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">"students"</span><span class="p">:</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">students</span><span class="o">.</span><span class="n">values</span><span class="p">()],</span>
+            <span class="s2">"instructors"</span><span class="p">:</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructors</span><span class="o">.</span><span class="n">values</span><span class="p">()],</span>
+            <span class="s2">"courses"</span><span class="p">:</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">courses</span><span class="o">.</span><span class="n">values</span><span class="p">()],</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="School.save_to_file">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.School.save_to_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Atomically save the school to a JSON file.</span>
+
+<span class="sd">        :param path: Destination file path</span>
+<span class="sd">        :type path: str</span>
+<span class="sd">        :return: The path that was written</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        """</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">.tmp"</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">fh</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">path</span></div>
+
+
+<div class="viewcode-block" id="School.from_dict">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.School.from_dict">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Rebuild a school and all its links from a dictionary.</span>
+
+<span class="sd">        :param data: Dictionary produced by :meth:`to_dict`</span>
+<span class="sd">        :type data: dict</span>
+<span class="sd">        :rtype: School</span>
+<span class="sd">        """</span>
+        <span class="n">school</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">raw</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"courses"</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="n">school</span><span class="o">.</span><span class="n">add_course</span><span class="p">(</span><span class="n">Course</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">raw</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">raw</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"students"</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="n">school</span><span class="o">.</span><span class="n">add_student</span><span class="p">(</span><span class="n">Student</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">raw</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">raw</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"instructors"</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="n">school</span><span class="o">.</span><span class="n">add_instructor</span><span class="p">(</span><span class="n">Instructor</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">raw</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">raw</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"students"</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="n">student</span> <span class="o">=</span> <span class="n">school</span><span class="o">.</span><span class="n">students</span><span class="p">[</span><span class="n">raw</span><span class="p">[</span><span class="s2">"student_id"</span><span class="p">]]</span>
+            <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"registered_courses"</span><span class="p">,</span> <span class="p">[]):</span>
+                <span class="n">course</span> <span class="o">=</span> <span class="n">school</span><span class="o">.</span><span class="n">courses</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cid</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">course</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">student</span><span class="o">.</span><span class="n">register_course</span><span class="p">(</span><span class="n">course</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">raw</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"instructors"</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="n">instructor</span> <span class="o">=</span> <span class="n">school</span><span class="o">.</span><span class="n">instructors</span><span class="p">[</span><span class="n">raw</span><span class="p">[</span><span class="s2">"instructor_id"</span><span class="p">]]</span>
+            <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"assigned_courses"</span><span class="p">,</span> <span class="p">[]):</span>
+                <span class="n">course</span> <span class="o">=</span> <span class="n">school</span><span class="o">.</span><span class="n">courses</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cid</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">course</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">instructor</span><span class="o">.</span><span class="n">assign_course</span><span class="p">(</span><span class="n">course</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">raw</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"courses"</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="n">course</span> <span class="o">=</span> <span class="n">school</span><span class="o">.</span><span class="n">courses</span><span class="p">[</span><span class="n">raw</span><span class="p">[</span><span class="s2">"course_id"</span><span class="p">]]</span>
+            <span class="n">iid</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"instructor_id"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">iid</span> <span class="ow">and</span> <span class="n">course</span><span class="o">.</span><span class="n">instructor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">instructor</span> <span class="o">=</span> <span class="n">school</span><span class="o">.</span><span class="n">instructors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">iid</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">instructor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">instructor</span><span class="o">.</span><span class="n">assign_course</span><span class="p">(</span><span class="n">course</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">sid</span> <span class="ow">in</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"enrolled_students"</span><span class="p">,</span> <span class="p">[]):</span>
+                <span class="n">student</span> <span class="o">=</span> <span class="n">school</span><span class="o">.</span><span class="n">students</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sid</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">student</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span>
+                    <span class="n">c</span><span class="o">.</span><span class="n">course_id</span> <span class="o">!=</span> <span class="n">course</span><span class="o">.</span><span class="n">course_id</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">student</span><span class="o">.</span><span class="n">registered_courses</span>
+                <span class="p">):</span>
+                    <span class="n">student</span><span class="o">.</span><span class="n">register_course</span><span class="p">(</span><span class="n">course</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">school</span></div>
+
+
+<div class="viewcode-block" id="School.load_from_file">
+<a class="viewcode-back" href="../part1_oop.html#part1_oop.School.load_from_file">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Load a school from a JSON file.</span>
+
+<span class="sd">        :param path: Source file path</span>
+<span class="sd">        :type path: str</span>
+<span class="sd">        :raises ValidationError: If the file is not valid JSON</span>
+<span class="sd">        :return: The loaded school, or an empty one if the file does not exist</span>
+<span class="sd">        :rtype: School</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">' is not valid JSON: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_demo</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Run a small command line demonstration of the model."""</span>
+    <span class="n">school</span> <span class="o">=</span> <span class="n">School</span><span class="p">()</span>
+
+    <span class="n">alice</span> <span class="o">=</span> <span class="n">school</span><span class="o">.</span><span class="n">add_student</span><span class="p">(</span><span class="n">Student</span><span class="p">(</span><span class="s2">"Alice Khoury"</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s2">"alice@mail.aub.edu"</span><span class="p">,</span> <span class="s2">"S001"</span><span class="p">))</span>
+    <span class="n">bob</span> <span class="o">=</span> <span class="n">school</span><span class="o">.</span><span class="n">add_student</span><span class="p">(</span><span class="n">Student</span><span class="p">(</span><span class="s2">"Bob Haddad"</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span> <span class="s2">"bob@mail.aub.edu"</span><span class="p">,</span> <span class="s2">"S002"</span><span class="p">))</span>
+    <span class="n">smith</span> <span class="o">=</span> <span class="n">school</span><span class="o">.</span><span class="n">add_instructor</span><span class="p">(</span>
+        <span class="n">Instructor</span><span class="p">(</span><span class="s2">"Dr. Smith"</span><span class="p">,</span> <span class="mi">45</span><span class="p">,</span> <span class="s2">"smith@aub.edu.lb"</span><span class="p">,</span> <span class="s2">"I001"</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">eece435</span> <span class="o">=</span> <span class="n">school</span><span class="o">.</span><span class="n">add_course</span><span class="p">(</span><span class="n">Course</span><span class="p">(</span><span class="s2">"EECE435L"</span><span class="p">,</span> <span class="s2">"Software Tools Lab"</span><span class="p">))</span>
+    <span class="n">math218</span> <span class="o">=</span> <span class="n">school</span><span class="o">.</span><span class="n">add_course</span><span class="p">(</span><span class="n">Course</span><span class="p">(</span><span class="s2">"MATH218"</span><span class="p">,</span> <span class="s2">"Linear Algebra"</span><span class="p">))</span>
+
+    <span class="n">smith</span><span class="o">.</span><span class="n">assign_course</span><span class="p">(</span><span class="n">eece435</span><span class="p">)</span>
+    <span class="n">alice</span><span class="o">.</span><span class="n">register_course</span><span class="p">(</span><span class="n">eece435</span><span class="p">)</span>
+    <span class="n">eece435</span><span class="o">.</span><span class="n">add_student</span><span class="p">(</span><span class="n">bob</span><span class="p">)</span>
+    <span class="n">bob</span><span class="o">.</span><span class="n">register_course</span><span class="p">(</span><span class="n">math218</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">person</span> <span class="ow">in</span> <span class="p">(</span><span class="n">alice</span><span class="p">,</span> <span class="n">bob</span><span class="p">,</span> <span class="n">smith</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">person</span><span class="o">.</span><span class="n">introduce</span><span class="p">())</span>
+
+    <span class="k">for</span> <span class="n">bad</span> <span class="ow">in</span> <span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">Student</span><span class="p">(</span><span class="s2">"X"</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s2">"x@y.com"</span><span class="p">,</span> <span class="s2">"S9"</span><span class="p">),</span>
+                <span class="k">lambda</span><span class="p">:</span> <span class="n">Student</span><span class="p">(</span><span class="s2">"X"</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s2">"not-an-email"</span><span class="p">,</span> <span class="s2">"S9"</span><span class="p">),</span>
+                <span class="k">lambda</span><span class="p">:</span> <span class="n">Student</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s2">"x@y.com"</span><span class="p">,</span> <span class="s2">"S9"</span><span class="p">)):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">bad</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"Rejected:"</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+
+    <span class="n">path</span> <span class="o">=</span> <span class="s2">"part1_demo.json"</span>
+    <span class="n">school</span><span class="o">.</span><span class="n">save_to_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">reloaded</span> <span class="o">=</span> <span class="n">School</span><span class="o">.</span><span class="n">load_from_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Reloaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">reloaded</span><span class="o">.</span><span class="n">students</span><span class="p">)</span><span class="si">}</span><span class="s2"> students, "</span>
+          <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">reloaded</span><span class="o">.</span><span class="n">instructors</span><span class="p">)</span><span class="si">}</span><span class="s2"> instructors, "</span>
+          <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">reloaded</span><span class="o">.</span><span class="n">courses</span><span class="p">)</span><span class="si">}</span><span class="s2"> courses from </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Alice's courses after reload:"</span><span class="p">,</span>
+          <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">course_name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">reloaded</span><span class="o">.</span><span class="n">students</span><span class="p">[</span><span class="s2">"S001"</span><span class="p">]</span><span class="o">.</span><span class="n">registered_courses</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"EECE435L instructor after reload:"</span><span class="p">,</span>
+          <span class="n">reloaded</span><span class="o">.</span><span class="n">courses</span><span class="p">[</span><span class="s2">"EECE435L"</span><span class="p">]</span><span class="o">.</span><span class="n">instructor</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">reloaded</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="o">==</span> <span class="n">school</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="s2">"round trip mismatch"</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Round trip OK"</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Search 'linear':"</span><span class="p">,</span>
+          <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">course_name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">reloaded</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">"linear"</span><span class="p">)[</span><span class="s2">"courses"</span><span class="p">]])</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">_demo</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elias Ghanem.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

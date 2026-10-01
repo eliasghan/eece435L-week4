@@ -1,0 +1,805 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>part4_database &mdash; School Management System 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            School Management System
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">School Management System</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">School Management System</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">part4_database</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for part4_database</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""SQLite persistence layer for the School Management System.</span>
+
+<span class="sd">The :class:`Database` class stores students, instructors, courses and</span>
+<span class="sd">enrollments and can convert to and from a :class:`part1_oop.School`.</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">part1_oop</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Course</span><span class="p">,</span>
+    <span class="n">Instructor</span><span class="p">,</span>
+    <span class="n">School</span><span class="p">,</span>
+    <span class="n">Student</span><span class="p">,</span>
+    <span class="n">ValidationError</span><span class="p">,</span>
+    <span class="n">validate_age</span><span class="p">,</span>
+    <span class="n">validate_email</span><span class="p">,</span>
+    <span class="n">validate_non_empty</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">DEFAULT_DB</span> <span class="o">=</span> <span class="s2">"school.db"</span>
+
+<span class="n">SCHEMA</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">PRAGMA foreign_keys = ON;</span>
+
+<span class="s2">CREATE TABLE IF NOT EXISTS instructors (</span>
+<span class="s2">    instructor_id TEXT PRIMARY KEY,</span>
+<span class="s2">    name          TEXT NOT NULL,</span>
+<span class="s2">    age           INTEGER NOT NULL CHECK (age &gt;= 0),</span>
+<span class="s2">    email         TEXT NOT NULL</span>
+<span class="s2">);</span>
+
+<span class="s2">CREATE TABLE IF NOT EXISTS students (</span>
+<span class="s2">    student_id TEXT PRIMARY KEY,</span>
+<span class="s2">    name       TEXT NOT NULL,</span>
+<span class="s2">    age        INTEGER NOT NULL CHECK (age &gt;= 0),</span>
+<span class="s2">    email      TEXT NOT NULL</span>
+<span class="s2">);</span>
+
+<span class="s2">CREATE TABLE IF NOT EXISTS courses (</span>
+<span class="s2">    course_id     TEXT PRIMARY KEY,</span>
+<span class="s2">    course_name   TEXT NOT NULL,</span>
+<span class="s2">    instructor_id TEXT,</span>
+<span class="s2">    FOREIGN KEY (instructor_id) REFERENCES instructors (instructor_id)</span>
+<span class="s2">        ON DELETE SET NULL</span>
+<span class="s2">);</span>
+
+<span class="s2">CREATE TABLE IF NOT EXISTS enrollments (</span>
+<span class="s2">    student_id TEXT NOT NULL,</span>
+<span class="s2">    course_id  TEXT NOT NULL,</span>
+<span class="s2">    PRIMARY KEY (student_id, course_id),</span>
+<span class="s2">    FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE,</span>
+<span class="s2">    FOREIGN KEY (course_id)  REFERENCES courses  (course_id)  ON DELETE CASCADE</span>
+<span class="s2">);</span>
+<span class="s2">"""</span>
+
+
+<div class="viewcode-block" id="Database">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Database</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""SQLite backed storage for school records.</span>
+
+<span class="sd">    :param path: Path of the SQLite database file, defaults to ``school.db``</span>
+<span class="sd">    :type path: str, optional</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">DEFAULT_DB</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Constructor method, opens the connection and creates the schema."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">row_factory</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"PRAGMA foreign_keys = ON"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">executescript</span><span class="p">(</span><span class="n">SCHEMA</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Database.close">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.close">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Close the database connection."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Enter the context manager.</span>
+
+<span class="sd">        :return: The database itself</span>
+<span class="sd">        :rtype: Database</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">exc</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Exit the context manager and close the connection."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sql</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">(),</span> <span class="n">duplicate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">foreign_key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Execute a write statement and commit it.</span>
+
+<span class="sd">        :param sql: SQL statement to execute</span>
+<span class="sd">        :type sql: str</span>
+<span class="sd">        :param params: Statement parameters, defaults to ()</span>
+<span class="sd">        :type params: tuple, optional</span>
+<span class="sd">        :param duplicate: Error message for uniqueness violations, defaults to None</span>
+<span class="sd">        :type duplicate: str, optional</span>
+<span class="sd">        :param foreign_key: Error message for foreign key violations, defaults to None</span>
+<span class="sd">        :type foreign_key: str, optional</span>
+<span class="sd">        :raises ValidationError: If an integrity constraint fails</span>
+<span class="sd">        :return: The cursor used for the statement</span>
+<span class="sd">        :rtype: sqlite3.Cursor</span>
+<span class="sd">        """</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">IntegrityError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s2">"FOREIGN KEY"</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">and</span> <span class="n">foreign_key</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="n">foreign_key</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="n">duplicate</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">cur</span>
+
+<div class="viewcode-block" id="Database.add_student">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.add_student">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_student</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">student_id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">email</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Insert a new student.</span>
+
+<span class="sd">        :param student_id: Unique student ID</span>
+<span class="sd">        :type student_id: str</span>
+<span class="sd">        :param name: Student name</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        :param age: Student age</span>
+<span class="sd">        :type age: int</span>
+<span class="sd">        :param email: Student email</span>
+<span class="sd">        :type email: str</span>
+<span class="sd">        :raises ValidationError: If data is invalid or the ID already exists</span>
+<span class="sd">        """</span>
+        <span class="n">student_id</span> <span class="o">=</span> <span class="n">validate_non_empty</span><span class="p">(</span><span class="n">student_id</span><span class="p">,</span> <span class="s2">"Student ID"</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">validate_non_empty</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">"Name"</span><span class="p">)</span>
+        <span class="n">age</span> <span class="o">=</span> <span class="n">validate_age</span><span class="p">(</span><span class="n">age</span><span class="p">)</span>
+        <span class="n">email</span> <span class="o">=</span> <span class="n">validate_email</span><span class="p">(</span><span class="n">email</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span>
+            <span class="s2">"INSERT INTO students (student_id, name, age, email) VALUES (?, ?, ?, ?)"</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">student_id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">email</span><span class="p">),</span>
+            <span class="n">duplicate</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Student ID '</span><span class="si">{</span><span class="n">student_id</span><span class="si">}</span><span class="s2">' already exists."</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Database.update_student">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.update_student">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_student</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">student_id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">email</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Update an existing student.</span>
+
+<span class="sd">        :param student_id: ID of the student to update</span>
+<span class="sd">        :type student_id: str</span>
+<span class="sd">        :param name: New name</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        :param age: New age</span>
+<span class="sd">        :type age: int</span>
+<span class="sd">        :param email: New email</span>
+<span class="sd">        :type email: str</span>
+<span class="sd">        :raises ValidationError: If data is invalid or the student does not exist</span>
+<span class="sd">        """</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">validate_non_empty</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">"Name"</span><span class="p">)</span>
+        <span class="n">age</span> <span class="o">=</span> <span class="n">validate_age</span><span class="p">(</span><span class="n">age</span><span class="p">)</span>
+        <span class="n">email</span> <span class="o">=</span> <span class="n">validate_email</span><span class="p">(</span><span class="n">email</span><span class="p">)</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span>
+            <span class="s2">"UPDATE students SET name = ?, age = ?, email = ? WHERE student_id = ?"</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">email</span><span class="p">,</span> <span class="n">student_id</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">cur</span><span class="o">.</span><span class="n">rowcount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No student with ID '</span><span class="si">{</span><span class="n">student_id</span><span class="si">}</span><span class="s2">'."</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Database.delete_student">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.delete_student">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_student</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">student_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Delete a student and their enrollments.</span>
+
+<span class="sd">        :param student_id: ID of the student to delete</span>
+<span class="sd">        :type student_id: str</span>
+<span class="sd">        :raises ValidationError: If the student does not exist</span>
+<span class="sd">        """</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span><span class="s2">"DELETE FROM students WHERE student_id = ?"</span><span class="p">,</span> <span class="p">(</span><span class="n">student_id</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="n">cur</span><span class="o">.</span><span class="n">rowcount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No student with ID '</span><span class="si">{</span><span class="n">student_id</span><span class="si">}</span><span class="s2">'."</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Database.get_students">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.get_students">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_students</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return every student ordered by ID.</span>
+
+<span class="sd">        :rtype: list</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="s2">"SELECT * FROM students ORDER BY student_id"</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Database.add_instructor">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.add_instructor">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_instructor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instructor_id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">email</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Insert a new instructor.</span>
+
+<span class="sd">        :param instructor_id: Unique instructor ID</span>
+<span class="sd">        :type instructor_id: str</span>
+<span class="sd">        :param name: Instructor name</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        :param age: Instructor age</span>
+<span class="sd">        :type age: int</span>
+<span class="sd">        :param email: Instructor email</span>
+<span class="sd">        :type email: str</span>
+<span class="sd">        :raises ValidationError: If data is invalid or the ID already exists</span>
+<span class="sd">        """</span>
+        <span class="n">instructor_id</span> <span class="o">=</span> <span class="n">validate_non_empty</span><span class="p">(</span><span class="n">instructor_id</span><span class="p">,</span> <span class="s2">"Instructor ID"</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">validate_non_empty</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">"Name"</span><span class="p">)</span>
+        <span class="n">age</span> <span class="o">=</span> <span class="n">validate_age</span><span class="p">(</span><span class="n">age</span><span class="p">)</span>
+        <span class="n">email</span> <span class="o">=</span> <span class="n">validate_email</span><span class="p">(</span><span class="n">email</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span>
+            <span class="s2">"INSERT INTO instructors (instructor_id, name, age, email) VALUES (?, ?, ?, ?)"</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">instructor_id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">email</span><span class="p">),</span>
+            <span class="n">duplicate</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Instructor ID '</span><span class="si">{</span><span class="n">instructor_id</span><span class="si">}</span><span class="s2">' already exists."</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Database.update_instructor">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.update_instructor">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_instructor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instructor_id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">email</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Update an existing instructor.</span>
+
+<span class="sd">        :param instructor_id: ID of the instructor to update</span>
+<span class="sd">        :type instructor_id: str</span>
+<span class="sd">        :param name: New name</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        :param age: New age</span>
+<span class="sd">        :type age: int</span>
+<span class="sd">        :param email: New email</span>
+<span class="sd">        :type email: str</span>
+<span class="sd">        :raises ValidationError: If data is invalid or the instructor does not exist</span>
+<span class="sd">        """</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">validate_non_empty</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">"Name"</span><span class="p">)</span>
+        <span class="n">age</span> <span class="o">=</span> <span class="n">validate_age</span><span class="p">(</span><span class="n">age</span><span class="p">)</span>
+        <span class="n">email</span> <span class="o">=</span> <span class="n">validate_email</span><span class="p">(</span><span class="n">email</span><span class="p">)</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span>
+            <span class="s2">"UPDATE instructors SET name = ?, age = ?, email = ? WHERE instructor_id = ?"</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">email</span><span class="p">,</span> <span class="n">instructor_id</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">cur</span><span class="o">.</span><span class="n">rowcount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No instructor with ID '</span><span class="si">{</span><span class="n">instructor_id</span><span class="si">}</span><span class="s2">'."</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Database.delete_instructor">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.delete_instructor">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_instructor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instructor_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Delete an instructor, leaving their courses without an instructor.</span>
+
+<span class="sd">        :param instructor_id: ID of the instructor to delete</span>
+<span class="sd">        :type instructor_id: str</span>
+<span class="sd">        :raises ValidationError: If the instructor does not exist</span>
+<span class="sd">        """</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span>
+            <span class="s2">"DELETE FROM instructors WHERE instructor_id = ?"</span><span class="p">,</span> <span class="p">(</span><span class="n">instructor_id</span><span class="p">,)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">cur</span><span class="o">.</span><span class="n">rowcount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No instructor with ID '</span><span class="si">{</span><span class="n">instructor_id</span><span class="si">}</span><span class="s2">'."</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Database.get_instructors">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.get_instructors">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_instructors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return every instructor ordered by ID.</span>
+
+<span class="sd">        :rtype: list</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="s2">"SELECT * FROM instructors ORDER BY instructor_id"</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Database.add_course">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.add_course">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_course</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">course_id</span><span class="p">,</span> <span class="n">course_name</span><span class="p">,</span> <span class="n">instructor_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Insert a new course.</span>
+
+<span class="sd">        :param course_id: Unique course ID</span>
+<span class="sd">        :type course_id: str</span>
+<span class="sd">        :param course_name: Course name</span>
+<span class="sd">        :type course_name: str</span>
+<span class="sd">        :param instructor_id: ID of the teaching instructor, defaults to None</span>
+<span class="sd">        :type instructor_id: str, optional</span>
+<span class="sd">        :raises ValidationError: If data is invalid, the ID exists or the instructor is unknown</span>
+<span class="sd">        """</span>
+        <span class="n">course_id</span> <span class="o">=</span> <span class="n">validate_non_empty</span><span class="p">(</span><span class="n">course_id</span><span class="p">,</span> <span class="s2">"Course ID"</span><span class="p">)</span>
+        <span class="n">course_name</span> <span class="o">=</span> <span class="n">validate_non_empty</span><span class="p">(</span><span class="n">course_name</span><span class="p">,</span> <span class="s2">"Course name"</span><span class="p">)</span>
+        <span class="n">instructor_id</span> <span class="o">=</span> <span class="n">instructor_id</span> <span class="ow">or</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span>
+            <span class="s2">"INSERT INTO courses (course_id, course_name, instructor_id) VALUES (?, ?, ?)"</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">course_id</span><span class="p">,</span> <span class="n">course_name</span><span class="p">,</span> <span class="n">instructor_id</span><span class="p">),</span>
+            <span class="n">duplicate</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Course ID '</span><span class="si">{</span><span class="n">course_id</span><span class="si">}</span><span class="s2">' already exists."</span><span class="p">,</span>
+            <span class="n">foreign_key</span><span class="o">=</span><span class="sa">f</span><span class="s2">"No instructor with ID '</span><span class="si">{</span><span class="n">instructor_id</span><span class="si">}</span><span class="s2">'."</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Database.update_course">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.update_course">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_course</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">course_id</span><span class="p">,</span> <span class="n">course_name</span><span class="p">,</span> <span class="n">instructor_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Update an existing course.</span>
+
+<span class="sd">        :param course_id: ID of the course to update</span>
+<span class="sd">        :type course_id: str</span>
+<span class="sd">        :param course_name: New course name</span>
+<span class="sd">        :type course_name: str</span>
+<span class="sd">        :param instructor_id: New instructor ID, defaults to None</span>
+<span class="sd">        :type instructor_id: str, optional</span>
+<span class="sd">        :raises ValidationError: If data is invalid or the course or instructor does not exist</span>
+<span class="sd">        """</span>
+        <span class="n">course_name</span> <span class="o">=</span> <span class="n">validate_non_empty</span><span class="p">(</span><span class="n">course_name</span><span class="p">,</span> <span class="s2">"Course name"</span><span class="p">)</span>
+        <span class="n">instructor_id</span> <span class="o">=</span> <span class="n">instructor_id</span> <span class="ow">or</span> <span class="kc">None</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span>
+            <span class="s2">"UPDATE courses SET course_name = ?, instructor_id = ? WHERE course_id = ?"</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">course_name</span><span class="p">,</span> <span class="n">instructor_id</span><span class="p">,</span> <span class="n">course_id</span><span class="p">),</span>
+            <span class="n">foreign_key</span><span class="o">=</span><span class="sa">f</span><span class="s2">"No instructor with ID '</span><span class="si">{</span><span class="n">instructor_id</span><span class="si">}</span><span class="s2">'."</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">cur</span><span class="o">.</span><span class="n">rowcount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No course with ID '</span><span class="si">{</span><span class="n">course_id</span><span class="si">}</span><span class="s2">'."</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Database.delete_course">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.delete_course">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_course</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">course_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Delete a course and its enrollments.</span>
+
+<span class="sd">        :param course_id: ID of the course to delete</span>
+<span class="sd">        :type course_id: str</span>
+<span class="sd">        :raises ValidationError: If the course does not exist</span>
+<span class="sd">        """</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span><span class="s2">"DELETE FROM courses WHERE course_id = ?"</span><span class="p">,</span> <span class="p">(</span><span class="n">course_id</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="n">cur</span><span class="o">.</span><span class="n">rowcount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No course with ID '</span><span class="si">{</span><span class="n">course_id</span><span class="si">}</span><span class="s2">'."</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Database.get_courses">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.get_courses">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_courses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return every course with its instructor name, ordered by ID.</span>
+
+<span class="sd">        :rtype: list</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="s2">"SELECT c.course_id, c.course_name, c.instructor_id, "</span>
+            <span class="s2">"       i.name AS instructor_name "</span>
+            <span class="s2">"FROM courses c LEFT JOIN instructors i "</span>
+            <span class="s2">"     ON c.instructor_id = i.instructor_id "</span>
+            <span class="s2">"ORDER BY c.course_id"</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Database.register_student">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.register_student">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_student</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">student_id</span><span class="p">,</span> <span class="n">course_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Enroll a student in a course.</span>
+
+<span class="sd">        :param student_id: Student ID</span>
+<span class="sd">        :type student_id: str</span>
+<span class="sd">        :param course_id: Course ID</span>
+<span class="sd">        :type course_id: str</span>
+<span class="sd">        :raises ValidationError: If already registered or the student or course is unknown</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span>
+            <span class="s2">"INSERT INTO enrollments (student_id, course_id) VALUES (?, ?)"</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">student_id</span><span class="p">,</span> <span class="n">course_id</span><span class="p">),</span>
+            <span class="n">duplicate</span><span class="o">=</span><span class="s2">"That student is already registered in that course."</span><span class="p">,</span>
+            <span class="n">foreign_key</span><span class="o">=</span><span class="s2">"Unknown student or course."</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Database.unregister_student">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.unregister_student">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">unregister_student</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">student_id</span><span class="p">,</span> <span class="n">course_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Remove a student from a course.</span>
+
+<span class="sd">        :param student_id: Student ID</span>
+<span class="sd">        :type student_id: str</span>
+<span class="sd">        :param course_id: Course ID</span>
+<span class="sd">        :type course_id: str</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span>
+            <span class="s2">"DELETE FROM enrollments WHERE student_id = ? AND course_id = ?"</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">student_id</span><span class="p">,</span> <span class="n">course_id</span><span class="p">),</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Database.assign_instructor">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.assign_instructor">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">assign_instructor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instructor_id</span><span class="p">,</span> <span class="n">course_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Assign an instructor to a course.</span>
+
+<span class="sd">        :param instructor_id: Instructor ID</span>
+<span class="sd">        :type instructor_id: str</span>
+<span class="sd">        :param course_id: Course ID</span>
+<span class="sd">        :type course_id: str</span>
+<span class="sd">        :raises ValidationError: If the instructor or course does not exist</span>
+<span class="sd">        """</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span>
+            <span class="s2">"UPDATE courses SET instructor_id = ? WHERE course_id = ?"</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">instructor_id</span><span class="p">,</span> <span class="n">course_id</span><span class="p">),</span>
+            <span class="n">foreign_key</span><span class="o">=</span><span class="sa">f</span><span class="s2">"No instructor with ID '</span><span class="si">{</span><span class="n">instructor_id</span><span class="si">}</span><span class="s2">'."</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">cur</span><span class="o">.</span><span class="n">rowcount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No course with ID '</span><span class="si">{</span><span class="n">course_id</span><span class="si">}</span><span class="s2">'."</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Database.courses_of_student">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.courses_of_student">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">courses_of_student</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">student_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return the courses a student is registered in.</span>
+
+<span class="sd">        :param student_id: Student ID</span>
+<span class="sd">        :type student_id: str</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="s2">"SELECT c.course_id, c.course_name FROM enrollments e "</span>
+            <span class="s2">"JOIN courses c ON c.course_id = e.course_id "</span>
+            <span class="s2">"WHERE e.student_id = ? ORDER BY c.course_id"</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">student_id</span><span class="p">,),</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Database.courses_of_instructor">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.courses_of_instructor">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">courses_of_instructor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instructor_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return the courses an instructor teaches.</span>
+
+<span class="sd">        :param instructor_id: Instructor ID</span>
+<span class="sd">        :type instructor_id: str</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="s2">"SELECT course_id, course_name FROM courses "</span>
+            <span class="s2">"WHERE instructor_id = ? ORDER BY course_id"</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">instructor_id</span><span class="p">,),</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Database.students_of_course">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.students_of_course">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">students_of_course</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">course_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return the students enrolled in a course.</span>
+
+<span class="sd">        :param course_id: Course ID</span>
+<span class="sd">        :type course_id: str</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="s2">"SELECT s.student_id, s.name FROM enrollments e "</span>
+            <span class="s2">"JOIN students s ON s.student_id = e.student_id "</span>
+            <span class="s2">"WHERE e.course_id = ? ORDER BY s.student_id"</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">course_id</span><span class="p">,),</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Database.to_school">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.to_school">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_school</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Build a :class:`part1_oop.School` from the database contents.</span>
+
+<span class="sd">        :rtype: part1_oop.School</span>
+<span class="sd">        """</span>
+        <span class="n">school</span> <span class="o">=</span> <span class="n">School</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_instructors</span><span class="p">():</span>
+            <span class="n">school</span><span class="o">.</span><span class="n">add_instructor</span><span class="p">(</span>
+                <span class="n">Instructor</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"name"</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">"age"</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">"email"</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">"instructor_id"</span><span class="p">])</span>
+            <span class="p">)</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_students</span><span class="p">():</span>
+            <span class="n">school</span><span class="o">.</span><span class="n">add_student</span><span class="p">(</span>
+                <span class="n">Student</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"name"</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">"age"</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">"email"</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">"student_id"</span><span class="p">])</span>
+            <span class="p">)</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_courses</span><span class="p">():</span>
+            <span class="n">course</span> <span class="o">=</span> <span class="n">school</span><span class="o">.</span><span class="n">add_course</span><span class="p">(</span><span class="n">Course</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"course_id"</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">"course_name"</span><span class="p">]))</span>
+            <span class="n">instructor</span> <span class="o">=</span> <span class="n">school</span><span class="o">.</span><span class="n">instructors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"instructor_id"</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">instructor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">instructor</span><span class="o">.</span><span class="n">assign_course</span><span class="p">(</span><span class="n">course</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"SELECT * FROM enrollments"</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+            <span class="n">student</span> <span class="o">=</span> <span class="n">school</span><span class="o">.</span><span class="n">students</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"student_id"</span><span class="p">])</span>
+            <span class="n">course</span> <span class="o">=</span> <span class="n">school</span><span class="o">.</span><span class="n">courses</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"course_id"</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">student</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">course</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">student</span><span class="o">.</span><span class="n">register_course</span><span class="p">(</span><span class="n">course</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">school</span></div>
+
+
+<div class="viewcode-block" id="Database.load_school">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.load_school">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_school</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">school</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Replace all database records with the contents of a school.</span>
+
+<span class="sd">        :param school: The school to store</span>
+<span class="sd">        :type school: part1_oop.School</span>
+<span class="sd">        """</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"DELETE FROM enrollments"</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"DELETE FROM courses"</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"DELETE FROM students"</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"DELETE FROM instructors"</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span>
+                <span class="s2">"INSERT INTO instructors (instructor_id, name, age, email) "</span>
+                <span class="s2">"VALUES (?, ?, ?, ?)"</span><span class="p">,</span>
+                <span class="p">[(</span><span class="n">i</span><span class="o">.</span><span class="n">instructor_id</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">age</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">email</span><span class="p">)</span>
+                 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">school</span><span class="o">.</span><span class="n">instructors</span><span class="o">.</span><span class="n">values</span><span class="p">()],</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span>
+                <span class="s2">"INSERT INTO students (student_id, name, age, email) VALUES (?, ?, ?, ?)"</span><span class="p">,</span>
+                <span class="p">[(</span><span class="n">s</span><span class="o">.</span><span class="n">student_id</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">age</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">email</span><span class="p">)</span>
+                 <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">school</span><span class="o">.</span><span class="n">students</span><span class="o">.</span><span class="n">values</span><span class="p">()],</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span>
+                <span class="s2">"INSERT INTO courses (course_id, course_name, instructor_id) "</span>
+                <span class="s2">"VALUES (?, ?, ?)"</span><span class="p">,</span>
+                <span class="p">[(</span><span class="n">c</span><span class="o">.</span><span class="n">course_id</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">course_name</span><span class="p">,</span>
+                  <span class="n">c</span><span class="o">.</span><span class="n">instructor</span><span class="o">.</span><span class="n">instructor_id</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">instructor</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+                 <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">school</span><span class="o">.</span><span class="n">courses</span><span class="o">.</span><span class="n">values</span><span class="p">()],</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span>
+                <span class="s2">"INSERT INTO enrollments (student_id, course_id) VALUES (?, ?)"</span><span class="p">,</span>
+                <span class="p">[(</span><span class="n">s</span><span class="o">.</span><span class="n">student_id</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">course_id</span><span class="p">)</span>
+                 <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">school</span><span class="o">.</span><span class="n">students</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                 <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">registered_courses</span><span class="p">],</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Database.save_json">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.save_json">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Save all records to a JSON file.</span>
+
+<span class="sd">        :param path: Destination file path</span>
+<span class="sd">        :type path: str</span>
+<span class="sd">        :return: The path that was written</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_school</span><span class="p">()</span><span class="o">.</span><span class="n">save_to_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Database.load_json">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.load_json">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Replace all records with the contents of a JSON file.</span>
+
+<span class="sd">        :param path: Source file path</span>
+<span class="sd">        :type path: str</span>
+<span class="sd">        :raises ValidationError: If the file is not valid JSON</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_school</span><span class="p">(</span><span class="n">School</span><span class="o">.</span><span class="n">load_from_file</span><span class="p">(</span><span class="n">path</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Database.export_csv">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.export_csv">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">export_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="s2">"students"</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Export one table to a CSV file.</span>
+
+<span class="sd">        :param path: Destination file path</span>
+<span class="sd">        :type path: str</span>
+<span class="sd">        :param table: One of ``students``, ``instructors`` or ``courses``, defaults to ``students``</span>
+<span class="sd">        :type table: str, optional</span>
+<span class="sd">        :raises ValidationError: If the table name is unknown</span>
+<span class="sd">        :return: The path that was written</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">table</span> <span class="o">==</span> <span class="s2">"students"</span><span class="p">:</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"student_id"</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="s2">"age"</span><span class="p">,</span> <span class="s2">"email"</span><span class="p">,</span> <span class="s2">"registered_courses"</span><span class="p">]</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">"student_id"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"name"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"age"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"email"</span><span class="p">],</span>
+                 <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s2">"course_id"</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">courses_of_student</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"student_id"</span><span class="p">]))]</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_students</span><span class="p">()</span>
+            <span class="p">]</span>
+        <span class="k">elif</span> <span class="n">table</span> <span class="o">==</span> <span class="s2">"instructors"</span><span class="p">:</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"instructor_id"</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="s2">"age"</span><span class="p">,</span> <span class="s2">"email"</span><span class="p">,</span> <span class="s2">"assigned_courses"</span><span class="p">]</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">"instructor_id"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"name"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"age"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"email"</span><span class="p">],</span>
+                 <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s2">"course_id"</span><span class="p">]</span>
+                           <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">courses_of_instructor</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"instructor_id"</span><span class="p">]))]</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_instructors</span><span class="p">()</span>
+            <span class="p">]</span>
+        <span class="k">elif</span> <span class="n">table</span> <span class="o">==</span> <span class="s2">"courses"</span><span class="p">:</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"course_id"</span><span class="p">,</span> <span class="s2">"course_name"</span><span class="p">,</span> <span class="s2">"instructor"</span><span class="p">,</span> <span class="s2">"enrolled_students"</span><span class="p">]</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">"course_id"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"course_name"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"instructor_name"</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">,</span>
+                 <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s2">"student_id"</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">students_of_course</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"course_id"</span><span class="p">]))]</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_courses</span><span class="p">()</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown table '</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">'."</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">path</span></div>
+
+
+<div class="viewcode-block" id="Database.backup">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.backup">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">backup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Copy the database to a backup file.</span>
+
+<span class="sd">        :param path: Destination path, defaults to a timestamped file next to the database</span>
+<span class="sd">        :type path: str, optional</span>
+<span class="sd">        :return: The backup file path</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">stamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">"%Y%m</span><span class="si">%d</span><span class="s2">_%H%M%S"</span><span class="p">)</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">_backup_</span><span class="si">{</span><span class="n">stamp</span><span class="si">}</span><span class="s2">.db"</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="n">dest</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">backup</span><span class="p">(</span><span class="n">dest</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">dest</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">path</span></div>
+
+
+<div class="viewcode-block" id="Database.restore">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.restore">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">restore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Restore the database from a backup file.</span>
+
+<span class="sd">        :param path: Backup file path</span>
+<span class="sd">        :type path: str</span>
+<span class="sd">        :raises ValidationError: If the backup file does not exist</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Backup file '</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">' not found."</span><span class="p">)</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">src</span><span class="o">.</span><span class="n">backup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">src</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Database.clear">
+<a class="viewcode-back" href="../part4_database.html#part4_database.Database.clear">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Delete every record from every table."""</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"DELETE FROM enrollments"</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"DELETE FROM courses"</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"DELETE FROM students"</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"DELETE FROM instructors"</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_demo</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Run a small command line demonstration of the database layer."""</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="s2">"demo_school.db"</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="n">db</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_instructor</span><span class="p">(</span><span class="s2">"I001"</span><span class="p">,</span> <span class="s2">"Dr. Smith"</span><span class="p">,</span> <span class="mi">45</span><span class="p">,</span> <span class="s2">"smith@aub.edu.lb"</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_student</span><span class="p">(</span><span class="s2">"S001"</span><span class="p">,</span> <span class="s2">"Alice Khoury"</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s2">"alice@mail.aub.edu"</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_student</span><span class="p">(</span><span class="s2">"S002"</span><span class="p">,</span> <span class="s2">"Bob Haddad"</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span> <span class="s2">"bob@mail.aub.edu"</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_course</span><span class="p">(</span><span class="s2">"EECE435L"</span><span class="p">,</span> <span class="s2">"Software Tools Lab"</span><span class="p">,</span> <span class="s2">"I001"</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_course</span><span class="p">(</span><span class="s2">"MATH218"</span><span class="p">,</span> <span class="s2">"Linear Algebra"</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">register_student</span><span class="p">(</span><span class="s2">"S001"</span><span class="p">,</span> <span class="s2">"EECE435L"</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">register_student</span><span class="p">(</span><span class="s2">"S002"</span><span class="p">,</span> <span class="s2">"EECE435L"</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">register_student</span><span class="p">(</span><span class="s2">"S002"</span><span class="p">,</span> <span class="s2">"MATH218"</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">assign_instructor</span><span class="p">(</span><span class="s2">"I001"</span><span class="p">,</span> <span class="s2">"MATH218"</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Students:"</span><span class="p">,</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">get_students</span><span class="p">()])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Courses :"</span><span class="p">,</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">get_courses</span><span class="p">()])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"S002 takes:"</span><span class="p">,</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">"course_id"</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">courses_of_student</span><span class="p">(</span><span class="s2">"S002"</span><span class="p">)])</span>
+
+    <span class="k">for</span> <span class="n">bad</span> <span class="ow">in</span> <span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">add_student</span><span class="p">(</span><span class="s2">"S003"</span><span class="p">,</span> <span class="s2">"X"</span><span class="p">,</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="s2">"x@y.com"</span><span class="p">),</span>
+                <span class="k">lambda</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">add_student</span><span class="p">(</span><span class="s2">"S003"</span><span class="p">,</span> <span class="s2">"X"</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s2">"nope"</span><span class="p">),</span>
+                <span class="k">lambda</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">add_student</span><span class="p">(</span><span class="s2">"S001"</span><span class="p">,</span> <span class="s2">"Dup"</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s2">"d@y.com"</span><span class="p">)):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">bad</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"Rejected:"</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+
+    <span class="n">backup_path</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">backup</span><span class="p">(</span><span class="s2">"demo_school_backup.db"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Backed up to"</span><span class="p">,</span> <span class="n">backup_path</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">delete_student</span><span class="p">(</span><span class="s2">"S001"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"After delete:"</span><span class="p">,</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">"student_id"</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">get_students</span><span class="p">()])</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">backup_path</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"After restore:"</span><span class="p">,</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">"student_id"</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">get_students</span><span class="p">()])</span>
+
+    <span class="n">db</span><span class="o">.</span><span class="n">save_json</span><span class="p">(</span><span class="s2">"demo_school.json"</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="s2">"demo_school.json"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"JSON round trip -&gt;"</span><span class="p">,</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">"student_id"</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">get_students</span><span class="p">()])</span>
+
+    <span class="n">db</span><span class="o">.</span><span class="n">export_csv</span><span class="p">(</span><span class="s2">"demo_students.csv"</span><span class="p">,</span> <span class="s2">"students"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"CSV written to demo_students.csv"</span><span class="p">)</span>
+
+    <span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">backup_path</span><span class="p">,</span> <span class="s2">"demo_school.json"</span><span class="p">,</span> <span class="s2">"demo_students.csv"</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Database demo OK"</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">_demo</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elias Ghanem.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

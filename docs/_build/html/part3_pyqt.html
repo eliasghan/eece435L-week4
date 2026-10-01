@@ -1,0 +1,316 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>part3_pyqt module &mdash; School Management System 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="part4_database module" href="part4_database.html" />
+    <link rel="prev" title="part1_oop module" href="part1_oop.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            School Management System
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">School Management System</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="part1_oop.html">part1_oop module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">part3_pyqt module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#part3_pyqt.SchoolWindow"><code class="docutils literal notranslate"><span class="pre">SchoolWindow</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.add_course"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.add_course()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.add_instructor"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.add_instructor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.add_student"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.add_student()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.assign_course"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.assign_course()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.backup_db"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.backup_db()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.clear_course_form"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.clear_course_form()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.clear_instructor_form"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.clear_instructor_form()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.clear_student_form"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.clear_student_form()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.closeEvent"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.closeEvent()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.delete_selected"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.delete_selected()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.drop_course"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.drop_course()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.edit_selected"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.edit_selected()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.export_csv"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.export_csv()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.load_json"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.load_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.new_file"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.new_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.refresh_all"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.refresh_all()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.refresh_dropdowns"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.refresh_dropdowns()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.refresh_tables"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.refresh_tables()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.register_course"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.register_course()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.restore_db"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.restore_db()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.save_json"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.save_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.update_course"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.update_course()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.update_instructor"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.update_instructor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part3_pyqt.SchoolWindow.update_student"><code class="docutils literal notranslate"><span class="pre">SchoolWindow.update_student()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#part3_pyqt.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="part4_database.html">part4_database module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">School Management System</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">School Management System</a></li>
+      <li class="breadcrumb-item active">part3_pyqt module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/part3_pyqt.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-part3_pyqt">
+<span id="part3-pyqt-module"></span><h1>part3_pyqt module<a class="headerlink" href="#module-part3_pyqt" title="Link to this heading"></a></h1>
+<p>PyQt5 graphical interface for the School Management System.</p>
+<p>Provides forms to add, update and delete students, instructors and courses,
+tables listing all records with live search, and a File menu for JSON,
+CSV and database backup operations.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">part3_pyqt.</span></span><span class="sig-name descname"><span class="pre">SchoolWindow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'school.db'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QMainWindow</span></code></p>
+<p>Main window of the PyQt5 School Management System.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>db_path</strong> (<em>str</em><em>, </em><em>optional</em>) – Path of the SQLite database file, defaults to <code class="docutils literal notranslate"><span class="pre">school.db</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.add_course">
+<span class="sig-name descname"><span class="pre">add_course</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.add_course"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.add_course" title="Link to this definition"></a></dt>
+<dd><p>Add a course from the course form.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.add_instructor">
+<span class="sig-name descname"><span class="pre">add_instructor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.add_instructor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.add_instructor" title="Link to this definition"></a></dt>
+<dd><p>Add an instructor from the instructor form.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.add_student">
+<span class="sig-name descname"><span class="pre">add_student</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.add_student"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.add_student" title="Link to this definition"></a></dt>
+<dd><p>Add a student from the student form.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.assign_course">
+<span class="sig-name descname"><span class="pre">assign_course</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.assign_course"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.assign_course" title="Link to this definition"></a></dt>
+<dd><p>Assign the instructor to the course selected in the dropdown.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.backup_db">
+<span class="sig-name descname"><span class="pre">backup_db</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.backup_db"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.backup_db" title="Link to this definition"></a></dt>
+<dd><p>Ask for a file name and back up the database.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.clear_course_form">
+<span class="sig-name descname"><span class="pre">clear_course_form</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.clear_course_form"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.clear_course_form" title="Link to this definition"></a></dt>
+<dd><p>Clear every field of the course form.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.clear_instructor_form">
+<span class="sig-name descname"><span class="pre">clear_instructor_form</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.clear_instructor_form"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.clear_instructor_form" title="Link to this definition"></a></dt>
+<dd><p>Clear every field of the instructor form.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.clear_student_form">
+<span class="sig-name descname"><span class="pre">clear_student_form</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.clear_student_form"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.clear_student_form" title="Link to this definition"></a></dt>
+<dd><p>Clear every field of the student form.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.closeEvent">
+<span class="sig-name descname"><span class="pre">closeEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.closeEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.closeEvent" title="Link to this definition"></a></dt>
+<dd><p>Close the database connection when the window closes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>QCloseEvent</em>) – The close event</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.delete_selected">
+<span class="sig-name descname"><span class="pre">delete_selected</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.delete_selected"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.delete_selected" title="Link to this definition"></a></dt>
+<dd><p>Delete the selected record after confirmation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.drop_course">
+<span class="sig-name descname"><span class="pre">drop_course</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.drop_course"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.drop_course" title="Link to this definition"></a></dt>
+<dd><p>Drop the course selected in the dropdown for the student.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.edit_selected">
+<span class="sig-name descname"><span class="pre">edit_selected</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.edit_selected"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.edit_selected" title="Link to this definition"></a></dt>
+<dd><p>Load the selected table row into the matching form for editing.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.export_csv">
+<span class="sig-name descname"><span class="pre">export_csv</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.export_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.export_csv" title="Link to this definition"></a></dt>
+<dd><p>Ask for a file name and export the active table to CSV.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.load_json">
+<span class="sig-name descname"><span class="pre">load_json</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.load_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.load_json" title="Link to this definition"></a></dt>
+<dd><p>Ask for a JSON file and replace all records with its contents.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.new_file">
+<span class="sig-name descname"><span class="pre">new_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.new_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.new_file" title="Link to this definition"></a></dt>
+<dd><p>Delete every record after confirmation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.refresh_all">
+<span class="sig-name descname"><span class="pre">refresh_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.refresh_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.refresh_all" title="Link to this definition"></a></dt>
+<dd><p>Reload every table and dropdown from the database.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.refresh_dropdowns">
+<span class="sig-name descname"><span class="pre">refresh_dropdowns</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.refresh_dropdowns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.refresh_dropdowns" title="Link to this definition"></a></dt>
+<dd><p>Reload the course and instructor dropdowns, keeping the current selection.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.refresh_tables">
+<span class="sig-name descname"><span class="pre">refresh_tables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.refresh_tables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.refresh_tables" title="Link to this definition"></a></dt>
+<dd><p>Reload the tables, filtered by the current search text.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.register_course">
+<span class="sig-name descname"><span class="pre">register_course</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.register_course"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.register_course" title="Link to this definition"></a></dt>
+<dd><p>Register the student in the course selected in the dropdown.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.restore_db">
+<span class="sig-name descname"><span class="pre">restore_db</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.restore_db"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.restore_db" title="Link to this definition"></a></dt>
+<dd><p>Ask for a backup file and restore the database from it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.save_json">
+<span class="sig-name descname"><span class="pre">save_json</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.save_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.save_json" title="Link to this definition"></a></dt>
+<dd><p>Ask for a file name and save all records to JSON.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.update_course">
+<span class="sig-name descname"><span class="pre">update_course</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.update_course"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.update_course" title="Link to this definition"></a></dt>
+<dd><p>Update the course identified in the course form.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.update_instructor">
+<span class="sig-name descname"><span class="pre">update_instructor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.update_instructor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.update_instructor" title="Link to this definition"></a></dt>
+<dd><p>Update the instructor identified in the instructor form.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part3_pyqt.SchoolWindow.update_student">
+<span class="sig-name descname"><span class="pre">update_student</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#SchoolWindow.update_student"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.SchoolWindow.update_student" title="Link to this definition"></a></dt>
+<dd><p>Update the student identified in the student form.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="part3_pyqt.main">
+<span class="sig-prename descclassname"><span class="pre">part3_pyqt.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part3_pyqt.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part3_pyqt.main" title="Link to this definition"></a></dt>
+<dd><p>Start the PyQt5 application and show the main window.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="part1_oop.html" class="btn btn-neutral float-left" title="part1_oop module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="part4_database.html" class="btn btn-neutral float-right" title="part4_database module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elias Ghanem.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

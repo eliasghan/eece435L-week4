@@ -1,0 +1,792 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>part1_oop module &mdash; School Management System 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="part3_pyqt module" href="part3_pyqt.html" />
+    <link rel="prev" title="School Management System" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            School Management System
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">School Management System</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">part1_oop module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#part1_oop.Course"><code class="docutils literal notranslate"><span class="pre">Course</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Course.add_student"><code class="docutils literal notranslate"><span class="pre">Course.add_student()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Course.from_dict"><code class="docutils literal notranslate"><span class="pre">Course.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Course.remove_student"><code class="docutils literal notranslate"><span class="pre">Course.remove_student()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Course.to_dict"><code class="docutils literal notranslate"><span class="pre">Course.to_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#part1_oop.Instructor"><code class="docutils literal notranslate"><span class="pre">Instructor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Instructor.assign_course"><code class="docutils literal notranslate"><span class="pre">Instructor.assign_course()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Instructor.from_dict"><code class="docutils literal notranslate"><span class="pre">Instructor.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Instructor.introduce"><code class="docutils literal notranslate"><span class="pre">Instructor.introduce()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Instructor.to_dict"><code class="docutils literal notranslate"><span class="pre">Instructor.to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Instructor.unassign_course"><code class="docutils literal notranslate"><span class="pre">Instructor.unassign_course()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#part1_oop.Person"><code class="docutils literal notranslate"><span class="pre">Person</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Person.email"><code class="docutils literal notranslate"><span class="pre">Person.email</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Person.from_dict"><code class="docutils literal notranslate"><span class="pre">Person.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Person.introduce"><code class="docutils literal notranslate"><span class="pre">Person.introduce()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Person.to_dict"><code class="docutils literal notranslate"><span class="pre">Person.to_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#part1_oop.School"><code class="docutils literal notranslate"><span class="pre">School</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.School.add_course"><code class="docutils literal notranslate"><span class="pre">School.add_course()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.School.add_instructor"><code class="docutils literal notranslate"><span class="pre">School.add_instructor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.School.add_student"><code class="docutils literal notranslate"><span class="pre">School.add_student()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.School.delete_course"><code class="docutils literal notranslate"><span class="pre">School.delete_course()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.School.delete_instructor"><code class="docutils literal notranslate"><span class="pre">School.delete_instructor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.School.delete_student"><code class="docutils literal notranslate"><span class="pre">School.delete_student()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.School.from_dict"><code class="docutils literal notranslate"><span class="pre">School.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.School.load_from_file"><code class="docutils literal notranslate"><span class="pre">School.load_from_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.School.save_to_file"><code class="docutils literal notranslate"><span class="pre">School.save_to_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.School.search"><code class="docutils literal notranslate"><span class="pre">School.search()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.School.to_dict"><code class="docutils literal notranslate"><span class="pre">School.to_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#part1_oop.Serializable"><code class="docutils literal notranslate"><span class="pre">Serializable</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Serializable.from_dict"><code class="docutils literal notranslate"><span class="pre">Serializable.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Serializable.to_dict"><code class="docutils literal notranslate"><span class="pre">Serializable.to_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#part1_oop.Student"><code class="docutils literal notranslate"><span class="pre">Student</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Student.drop_course"><code class="docutils literal notranslate"><span class="pre">Student.drop_course()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Student.from_dict"><code class="docutils literal notranslate"><span class="pre">Student.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Student.introduce"><code class="docutils literal notranslate"><span class="pre">Student.introduce()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Student.register_course"><code class="docutils literal notranslate"><span class="pre">Student.register_course()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#part1_oop.Student.to_dict"><code class="docutils literal notranslate"><span class="pre">Student.to_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#part1_oop.ValidationError"><code class="docutils literal notranslate"><span class="pre">ValidationError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#part1_oop.validate_age"><code class="docutils literal notranslate"><span class="pre">validate_age()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#part1_oop.validate_email"><code class="docutils literal notranslate"><span class="pre">validate_email()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#part1_oop.validate_non_empty"><code class="docutils literal notranslate"><span class="pre">validate_non_empty()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="part3_pyqt.html">part3_pyqt module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="part4_database.html">part4_database module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">School Management System</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">School Management System</a></li>
+      <li class="breadcrumb-item active">part1_oop module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/part1_oop.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-part1_oop">
+<span id="part1-oop-module"></span><h1>part1_oop module<a class="headerlink" href="#module-part1_oop" title="Link to this heading"></a></h1>
+<p>Object-oriented model of the School Management System.</p>
+<p>Defines the validation helpers, the <a class="reference internal" href="#part1_oop.Person" title="part1_oop.Person"><code class="xref py py-class docutils literal notranslate"><span class="pre">Person</span></code></a> hierarchy
+(<a class="reference internal" href="#part1_oop.Student" title="part1_oop.Student"><code class="xref py py-class docutils literal notranslate"><span class="pre">Student</span></code></a>, <a class="reference internal" href="#part1_oop.Instructor" title="part1_oop.Instructor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instructor</span></code></a>), <a class="reference internal" href="#part1_oop.Course" title="part1_oop.Course"><code class="xref py py-class docutils literal notranslate"><span class="pre">Course</span></code></a> and the
+<a class="reference internal" href="#part1_oop.School" title="part1_oop.School"><code class="xref py py-class docutils literal notranslate"><span class="pre">School</span></code></a> container that serializes everything to JSON.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="part1_oop.Course">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">part1_oop.</span></span><span class="sig-name descname"><span class="pre">Course</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">course_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">course_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instructor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enrolled_students</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Course"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Course" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#part1_oop.Serializable" title="part1_oop.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Serializable</span></code></a></p>
+<p>A course with an optional instructor and enrolled students.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>course_id</strong> (<em>str</em>) – Unique course identifier</p></li>
+<li><p><strong>course_name</strong> (<em>str</em>) – Name of the course</p></li>
+<li><p><strong>instructor</strong> (<a class="reference internal" href="#part1_oop.Instructor" title="part1_oop.Instructor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instructor</span></code></a>, optional) – Instructor teaching the course, defaults to None</p></li>
+<li><p><strong>enrolled_students</strong> (<em>list</em><em>, </em><em>optional</em>) – Students enrolled in the course, defaults to None</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.ValidationError" title="part1_oop.ValidationError"><strong>ValidationError</strong></a> – If an argument is invalid</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Course.add_student">
+<span class="sig-name descname"><span class="pre">add_student</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">student</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Course.add_student"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Course.add_student" title="Link to this definition"></a></dt>
+<dd><p>Enroll a student in this course.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>student</strong> (<a class="reference internal" href="#part1_oop.Student" title="part1_oop.Student"><code class="xref py py-class docutils literal notranslate"><span class="pre">Student</span></code></a>) – The student to enroll</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.ValidationError" title="part1_oop.ValidationError"><strong>ValidationError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">student</span></code> is not a Student</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Course.from_dict">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Course.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Course.from_dict" title="Link to this definition"></a></dt>
+<dd><p>Create a course from a dictionary, without links.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em>) – Dictionary produced by <a class="reference internal" href="#part1_oop.Course.to_dict" title="part1_oop.Course.to_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">to_dict()</span></code></a></p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.Course" title="part1_oop.Course">Course</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Course.remove_student">
+<span class="sig-name descname"><span class="pre">remove_student</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">student</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Course.remove_student"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Course.remove_student" title="Link to this definition"></a></dt>
+<dd><p>Remove a student from this course.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>student</strong> (<a class="reference internal" href="#part1_oop.Student" title="part1_oop.Student"><code class="xref py py-class docutils literal notranslate"><span class="pre">Student</span></code></a>) – The student to remove</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Course.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Course.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Course.to_dict" title="Link to this definition"></a></dt>
+<dd><p>Convert the course to a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="part1_oop.Instructor">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">part1_oop.</span></span><span class="sig-name descname"><span class="pre">Instructor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">age</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_email</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instructor_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assigned_courses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Instructor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Instructor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#part1_oop.Person" title="part1_oop.Person"><code class="xref py py-class docutils literal notranslate"><span class="pre">Person</span></code></a></p>
+<p>An instructor that can be assigned to courses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Full name of the instructor</p></li>
+<li><p><strong>age</strong> (<em>int</em>) – Age of the instructor</p></li>
+<li><p><strong>_email</strong> (<em>str</em>) – Email address of the instructor</p></li>
+<li><p><strong>instructor_id</strong> (<em>str</em>) – Unique instructor identifier</p></li>
+<li><p><strong>assigned_courses</strong> (<em>list</em><em>, </em><em>optional</em>) – Courses taught by the instructor, defaults to None</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Instructor.assign_course">
+<span class="sig-name descname"><span class="pre">assign_course</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">course</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Instructor.assign_course"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Instructor.assign_course" title="Link to this definition"></a></dt>
+<dd><p>Assign the instructor to a course, replacing any previous instructor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>course</strong> (<a class="reference internal" href="#part1_oop.Course" title="part1_oop.Course"><code class="xref py py-class docutils literal notranslate"><span class="pre">Course</span></code></a>) – The course to teach</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.ValidationError" title="part1_oop.ValidationError"><strong>ValidationError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">course</span></code> is not a Course or is already assigned</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Instructor.from_dict">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Instructor.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Instructor.from_dict" title="Link to this definition"></a></dt>
+<dd><p>Create an instructor from a dictionary, without its courses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em>) – Dictionary produced by <a class="reference internal" href="#part1_oop.Instructor.to_dict" title="part1_oop.Instructor.to_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">to_dict()</span></code></a></p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.Instructor" title="part1_oop.Instructor">Instructor</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Instructor.introduce">
+<span class="sig-name descname"><span class="pre">introduce</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Instructor.introduce"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Instructor.introduce" title="Link to this definition"></a></dt>
+<dd><p>Return a self introduction including the instructor ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Instructor.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Instructor.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Instructor.to_dict" title="Link to this definition"></a></dt>
+<dd><p>Convert the instructor to a dictionary including assigned course IDs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Instructor.unassign_course">
+<span class="sig-name descname"><span class="pre">unassign_course</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">course</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Instructor.unassign_course"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Instructor.unassign_course" title="Link to this definition"></a></dt>
+<dd><p>Remove the instructor from a course.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>course</strong> (<a class="reference internal" href="#part1_oop.Course" title="part1_oop.Course"><code class="xref py py-class docutils literal notranslate"><span class="pre">Course</span></code></a>) – The course to unassign</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="part1_oop.Person">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">part1_oop.</span></span><span class="sig-name descname"><span class="pre">Person</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">age</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_email</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Person"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Person" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#part1_oop.Serializable" title="part1_oop.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Serializable</span></code></a></p>
+<p>Base class for every person in the school.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Full name of the person</p></li>
+<li><p><strong>age</strong> (<em>int</em>) – Age of the person, between 0 and 130</p></li>
+<li><p><strong>_email</strong> (<em>str</em>) – Email address of the person</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.ValidationError" title="part1_oop.ValidationError"><strong>ValidationError</strong></a> – If any argument is invalid</p>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="part1_oop.Person.email">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">email</span></span><a class="headerlink" href="#part1_oop.Person.email" title="Link to this definition"></a></dt>
+<dd><p>The validated email address of the person.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The email address</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Person.from_dict">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Person.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Person.from_dict" title="Link to this definition"></a></dt>
+<dd><p>Create a person from a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em>) – Dictionary with <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">age</span></code> and <code class="docutils literal notranslate"><span class="pre">email</span></code> keys</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new person</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#part1_oop.Person" title="part1_oop.Person">Person</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Person.introduce">
+<span class="sig-name descname"><span class="pre">introduce</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Person.introduce"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Person.introduce" title="Link to this definition"></a></dt>
+<dd><p>Return a short self introduction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Introduction sentence</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Person.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Person.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Person.to_dict" title="Link to this definition"></a></dt>
+<dd><p>Convert the person to a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary with <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">age</span></code> and <code class="docutils literal notranslate"><span class="pre">email</span></code> keys</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="part1_oop.School">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">part1_oop.</span></span><span class="sig-name descname"><span class="pre">School</span></span><a class="reference internal" href="_modules/part1_oop.html#School"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.School" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>In-memory container for students, instructors and courses keyed by ID.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.School.add_course">
+<span class="sig-name descname"><span class="pre">add_course</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">course</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#School.add_course"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.School.add_course" title="Link to this definition"></a></dt>
+<dd><p>Add a course to the school.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>course</strong> (<a class="reference internal" href="#part1_oop.Course" title="part1_oop.Course"><code class="xref py py-class docutils literal notranslate"><span class="pre">Course</span></code></a>) – The course to add</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.ValidationError" title="part1_oop.ValidationError"><strong>ValidationError</strong></a> – If the course ID already exists</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The added course</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.Course" title="part1_oop.Course">Course</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.School.add_instructor">
+<span class="sig-name descname"><span class="pre">add_instructor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instructor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#School.add_instructor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.School.add_instructor" title="Link to this definition"></a></dt>
+<dd><p>Add an instructor to the school.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>instructor</strong> (<a class="reference internal" href="#part1_oop.Instructor" title="part1_oop.Instructor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Instructor</span></code></a>) – The instructor to add</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.ValidationError" title="part1_oop.ValidationError"><strong>ValidationError</strong></a> – If the instructor ID already exists</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The added instructor</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.Instructor" title="part1_oop.Instructor">Instructor</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.School.add_student">
+<span class="sig-name descname"><span class="pre">add_student</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">student</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#School.add_student"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.School.add_student" title="Link to this definition"></a></dt>
+<dd><p>Add a student to the school.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>student</strong> (<a class="reference internal" href="#part1_oop.Student" title="part1_oop.Student"><code class="xref py py-class docutils literal notranslate"><span class="pre">Student</span></code></a>) – The student to add</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.ValidationError" title="part1_oop.ValidationError"><strong>ValidationError</strong></a> – If the student ID already exists</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The added student</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.Student" title="part1_oop.Student">Student</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.School.delete_course">
+<span class="sig-name descname"><span class="pre">delete_course</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">course_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#School.delete_course"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.School.delete_course" title="Link to this definition"></a></dt>
+<dd><p>Delete a course and detach its students and instructor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>course_id</strong> (<em>str</em>) – ID of the course to delete</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.ValidationError" title="part1_oop.ValidationError"><strong>ValidationError</strong></a> – If no such course exists</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The deleted course</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.Course" title="part1_oop.Course">Course</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.School.delete_instructor">
+<span class="sig-name descname"><span class="pre">delete_instructor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instructor_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#School.delete_instructor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.School.delete_instructor" title="Link to this definition"></a></dt>
+<dd><p>Delete an instructor and unassign all their courses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>instructor_id</strong> (<em>str</em>) – ID of the instructor to delete</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.ValidationError" title="part1_oop.ValidationError"><strong>ValidationError</strong></a> – If no such instructor exists</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The deleted instructor</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.Instructor" title="part1_oop.Instructor">Instructor</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.School.delete_student">
+<span class="sig-name descname"><span class="pre">delete_student</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">student_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#School.delete_student"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.School.delete_student" title="Link to this definition"></a></dt>
+<dd><p>Delete a student and drop all their courses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>student_id</strong> (<em>str</em>) – ID of the student to delete</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.ValidationError" title="part1_oop.ValidationError"><strong>ValidationError</strong></a> – If no such student exists</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The deleted student</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.Student" title="part1_oop.Student">Student</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.School.from_dict">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#School.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.School.from_dict" title="Link to this definition"></a></dt>
+<dd><p>Rebuild a school and all its links from a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em>) – Dictionary produced by <a class="reference internal" href="#part1_oop.School.to_dict" title="part1_oop.School.to_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">to_dict()</span></code></a></p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.School" title="part1_oop.School">School</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.School.load_from_file">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">load_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#School.load_from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.School.load_from_file" title="Link to this definition"></a></dt>
+<dd><p>Load a school from a JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – Source file path</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.ValidationError" title="part1_oop.ValidationError"><strong>ValidationError</strong></a> – If the file is not valid JSON</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The loaded school, or an empty one if the file does not exist</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.School" title="part1_oop.School">School</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.School.save_to_file">
+<span class="sig-name descname"><span class="pre">save_to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#School.save_to_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.School.save_to_file" title="Link to this definition"></a></dt>
+<dd><p>Atomically save the school to a JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – Destination file path</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The path that was written</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.School.search">
+<span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">term</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#School.search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.School.search" title="Link to this definition"></a></dt>
+<dd><p>Search records by name, ID or course.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>term</strong> (<em>str</em>) – Case-insensitive search text, an empty term matches everything</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with <code class="docutils literal notranslate"><span class="pre">students</span></code>, <code class="docutils literal notranslate"><span class="pre">instructors</span></code> and <code class="docutils literal notranslate"><span class="pre">courses</span></code> lists</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.School.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#School.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.School.to_dict" title="Link to this definition"></a></dt>
+<dd><p>Convert the whole school to a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="part1_oop.Serializable">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">part1_oop.</span></span><span class="sig-name descname"><span class="pre">Serializable</span></span><a class="reference internal" href="_modules/part1_oop.html#Serializable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Serializable" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Abstract base class for objects that convert to and from dictionaries.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Serializable.from_dict">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Serializable.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Serializable.from_dict" title="Link to this definition"></a></dt>
+<dd><p>Build an object from a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em>) – Dictionary produced by <a class="reference internal" href="#part1_oop.Serializable.to_dict" title="part1_oop.Serializable.to_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">to_dict()</span></code></a></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new instance of the class</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Serializable.to_dict">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Serializable.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Serializable.to_dict" title="Link to this definition"></a></dt>
+<dd><p>Convert the object to a JSON friendly dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary representation of the object</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="part1_oop.Student">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">part1_oop.</span></span><span class="sig-name descname"><span class="pre">Student</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">age</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_email</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">student_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">registered_courses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Student"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Student" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#part1_oop.Person" title="part1_oop.Person"><code class="xref py py-class docutils literal notranslate"><span class="pre">Person</span></code></a></p>
+<p>A student that can register in courses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Full name of the student</p></li>
+<li><p><strong>age</strong> (<em>int</em>) – Age of the student</p></li>
+<li><p><strong>_email</strong> (<em>str</em>) – Email address of the student</p></li>
+<li><p><strong>student_id</strong> (<em>str</em>) – Unique student identifier</p></li>
+<li><p><strong>registered_courses</strong> (<em>list</em><em>, </em><em>optional</em>) – Courses the student is registered in, defaults to None</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Student.drop_course">
+<span class="sig-name descname"><span class="pre">drop_course</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">course</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Student.drop_course"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Student.drop_course" title="Link to this definition"></a></dt>
+<dd><p>Remove the student from a course.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>course</strong> (<a class="reference internal" href="#part1_oop.Course" title="part1_oop.Course"><code class="xref py py-class docutils literal notranslate"><span class="pre">Course</span></code></a>) – The course to drop</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Student.from_dict">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Student.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Student.from_dict" title="Link to this definition"></a></dt>
+<dd><p>Create a student from a dictionary, without its courses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em>) – Dictionary produced by <a class="reference internal" href="#part1_oop.Student.to_dict" title="part1_oop.Student.to_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">to_dict()</span></code></a></p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.Student" title="part1_oop.Student">Student</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Student.introduce">
+<span class="sig-name descname"><span class="pre">introduce</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Student.introduce"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Student.introduce" title="Link to this definition"></a></dt>
+<dd><p>Return a self introduction including the student ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Student.register_course">
+<span class="sig-name descname"><span class="pre">register_course</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">course</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Student.register_course"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Student.register_course" title="Link to this definition"></a></dt>
+<dd><p>Register the student in a course and enroll them in it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>course</strong> (<a class="reference internal" href="#part1_oop.Course" title="part1_oop.Course"><code class="xref py py-class docutils literal notranslate"><span class="pre">Course</span></code></a>) – The course to register in</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.ValidationError" title="part1_oop.ValidationError"><strong>ValidationError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">course</span></code> is not a Course or the student is already registered</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="part1_oop.Student.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#Student.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.Student.to_dict" title="Link to this definition"></a></dt>
+<dd><p>Convert the student to a dictionary including registered course IDs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="part1_oop.ValidationError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">part1_oop.</span></span><span class="sig-name descname"><span class="pre">ValidationError</span></span><a class="reference internal" href="_modules/part1_oop.html#ValidationError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.ValidationError" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
+<p>Raised when user supplied data fails validation.</p>
+<p>Subclass of <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code> so it can be caught generically.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="part1_oop.validate_age">
+<span class="sig-prename descclassname"><span class="pre">part1_oop.</span></span><span class="sig-name descname"><span class="pre">validate_age</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#validate_age"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.validate_age" title="Link to this definition"></a></dt>
+<dd><p>Validate and convert an age.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> (<em>int</em><em> or </em><em>str</em>) – The age to validate, as an int or numeric string</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.ValidationError" title="part1_oop.ValidationError"><strong>ValidationError</strong></a> – If the age is not a whole number or is outside 0..130</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The age as an integer</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="part1_oop.validate_email">
+<span class="sig-prename descclassname"><span class="pre">part1_oop.</span></span><span class="sig-name descname"><span class="pre">validate_email</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#validate_email"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.validate_email" title="Link to this definition"></a></dt>
+<dd><p>Validate an email address against a simple pattern.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> (<em>str</em>) – The email address to validate</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.ValidationError" title="part1_oop.ValidationError"><strong>ValidationError</strong></a> – If the email is empty or malformed</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The stripped email address</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="part1_oop.validate_non_empty">
+<span class="sig-prename descclassname"><span class="pre">part1_oop.</span></span><span class="sig-name descname"><span class="pre">validate_non_empty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/part1_oop.html#validate_non_empty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#part1_oop.validate_non_empty" title="Link to this definition"></a></dt>
+<dd><p>Ensure a value is not empty or whitespace only.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<em>object</em>) – The value to check</p></li>
+<li><p><strong>field</strong> (<em>str</em>) – Human readable field name used in the error message</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#part1_oop.ValidationError" title="part1_oop.ValidationError"><strong>ValidationError</strong></a> – If the value is <code class="docutils literal notranslate"><span class="pre">None</span></code> or blank</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The value converted to a stripped string</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules.html" class="btn btn-neutral float-left" title="School Management System" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="part3_pyqt.html" class="btn btn-neutral float-right" title="part3_pyqt module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Elias Ghanem.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

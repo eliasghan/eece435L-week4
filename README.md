@@ -1,4 +1,5 @@
 # Lab 3 - Documentation
+# Elias Ghanem
 
 EECE 435L Software Tools Lab, Fall 2025-2026
 Author: Elias Ghanem

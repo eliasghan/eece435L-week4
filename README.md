@@ -74,3 +74,8 @@ Open `docs/_build/html/index.html` in a browser to view the documentation.
 | Version   | 1.0                      |
 | Release   | 1.0.0                    |
 | Theme     | sphinx_rtd_theme         |
+
+## Lab 5 - Postman and APIs
+
+The Flask user management REST API and its Postman collection are in
+[`user_app/`](user_app/README.md).
